@@ -28,9 +28,11 @@ namespace regexpr {
 	public:
 		SyntaxTree() {}
 		SyntaxTree(const std::string& s);
+		PosVector firstPositions() const;
+		std::string getExpression() const { return expr; }
 		//void setExpr(const std::string& s) { expr = s; }
 		void create(const std::string& s);
-		void buildDFA();
+		std::vector<std::pair<It, PosVector>> buildFPTable();
 		void print();
 	};
 	

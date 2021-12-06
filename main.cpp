@@ -4,14 +4,14 @@
 #include <string>
 #include <vector>
 #include "SyntaxTree.h"
+#include "DFA.h"
 using namespace regexpr;
 int main() {
 	SyntaxTree a;
-	std::vector<int> i(3);
 	try {
 		a.create("(m|e)p(h|i)");
 		a.print();
-		a.buildDFA();
+		DFA automat(a.firstPositions(),a.buildFPTable(),a.getExpression());
 	}
 	catch (std::exception& a) {
 		std::cout << a.what();

@@ -4,5 +4,6 @@ namespace regexpr {
 	class Operator : public Node {
 	public:
 		Operator() {}
+		virtual ~Operator(){}
 	};
 }

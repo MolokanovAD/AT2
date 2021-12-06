@@ -5,17 +5,6 @@
 #include <iostream>
 
 namespace regexpr {
-	enum TYPE {
-		OR,
-		CONCAT,
-		POSITIVE,
-		REPEAT,
-		GROUP,
-		BRACKETS,
-		OPEN_BRACKET,
-		CLOSE_BRACKET,
-		SCREEN,
-	};
 
 	typedef std::string::const_iterator It;
 	typedef std::vector<std::string::const_iterator> PosVector;
@@ -32,7 +21,7 @@ namespace regexpr {
 		Node(bool n, PosVector f, PosVector l) :nullable(n),firstPos(f),lastPos(l) {}
 		Node(bool n, It l) :nullable(n) { firstPos.push_back(l); lastPos.push_back(l); }
 		void setParent(std::shared_ptr<Node> p) { parent = p; }
-		virtual bool isEmpty() = 0;
+		virtual bool isProcessed() = 0;
 		virtual bool isNullable() { return nullable; }
 		PosVector firstPositions() { return firstPos; }
 		PosVector lastPositions() { return lastPos; }

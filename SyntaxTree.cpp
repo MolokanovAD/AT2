@@ -1,14 +1,16 @@
 #include "SyntaxTree.h"
+#include "LastNode.h"
 
 namespace regexpr {
 	regexpr::SyntaxTree::SyntaxTree(const std::string& s) {
 		create(s);
 	}
-	void SyntaxTree::buildDFA() {
+	std::vector<std::pair<It, PosVector>> SyntaxTree::buildFPTable() {
 		if (nodeList.size() != 1)
 			throw std::exception("Syntax tree is not created");
 		std::vector<std::pair<It, PosVector>> followPos;
 		buildFollowTable(nodeList.front(),followPos);
+		return followPos;
 	}
 	void regexpr::SyntaxTree::buildFollowTable(SP_Node n, std::vector<std::pair<It, std::vector<It>>>& followPos) {
 		auto binary = std::dynamic_pointer_cast<BinaryOperator>(n);
@@ -111,6 +113,7 @@ namespace regexpr {
 		}
 		if (allBrackets.back().second == nullptr)throw std::exception("Syntax error");
 		nodeList.emplace_front(std::make_shared<OpenBracket>());
+		nodeList.emplace_back(std::make_shared<LastNode>(expr.end()));
 		nodeList.emplace_back(std::make_shared<CloseBracket>());
 		allBrackets.emplace_back(std::pair<std::shared_ptr<NL_It>, std::shared_ptr<NL_It>>(std::make_shared<NL_It>(nodeList.begin()), std::make_shared<NL_It>(--nodeList.end())));
 	}
@@ -160,8 +163,8 @@ namespace regexpr {
 				SP_Pos positiveNode = std::dynamic_pointer_cast<Positive>(*i);
 				auto pred = i;
 				pred--;
-				if (positiveNode && positiveNode->isEmpty()) {
-					if ((*pred)->isEmpty()) throw std::exception("Syntax error");
+				if (positiveNode && positiveNode->isProcessed()) {
+					if ((*pred)->isProcessed()) throw std::exception("Syntax error");
 					positiveNode->setChild(*pred);
 					(*pred)->setParent(positiveNode);
 					positiveNode->buildPositions();
@@ -169,8 +172,8 @@ namespace regexpr {
 				}
 				else {
 					SP_Rep repeatNode = std::dynamic_pointer_cast<Repeat>(*i);
-					if (repeatNode && repeatNode->isEmpty()) {
-						if ((*pred)->isEmpty()) throw std::exception("Syntax error");
+					if (repeatNode && repeatNode->isProcessed()) {
+						if ((*pred)->isProcessed()) throw std::exception("Syntax error");
 						repeatNode->setChild(*pred);
 						(*pred)->setParent(repeatNode);
 						repeatNode->buildPositions();
@@ -186,11 +189,11 @@ namespace regexpr {
 				auto pred = i;
 				pred--;
 				auto concatNode = std::dynamic_pointer_cast<Concat>(*i);
-				if (concatNode && (*concatNode).isEmpty()) {//if . metasymbol is met
+				if (concatNode && (*concatNode).isProcessed()) {//if . metasymbol is met
 					//set all parents
 					auto next = i;
 					next++;
-					if ((*next)->isEmpty() || (*pred)->isEmpty()) throw std::exception("Syntax error");
+					if ((*next)->isProcessed() || (*pred)->isProcessed()) throw std::exception("Syntax error");
 					(*concatNode).setChildren(*pred, *next);
 					(*pred)->setParent(concatNode);
 					(*next)->setParent(concatNode);
@@ -200,9 +203,9 @@ namespace regexpr {
 				}
 				else {
 					//if non-processed OR-node is met we don't touch it
-					if (std::dynamic_pointer_cast<Or>(*i) && (*i)->isEmpty() || std::dynamic_pointer_cast<Or>(*pred) && (*pred)->isEmpty()) continue;
+					if (std::dynamic_pointer_cast<Or>(*i) && (*i)->isProcessed() || std::dynamic_pointer_cast<Or>(*pred) && (*pred)->isProcessed()) continue;
 					//otherwise, if we have empty not OR node, it's a mistake
-					if((*pred)->isEmpty() || (*i)->isEmpty()) throw std::exception("Syntax error");
+					if((*pred)->isProcessed() || (*i)->isProcessed()) throw std::exception("Syntax error");
 					auto concNode = std::make_shared<Concat>(*pred, *i);
 					concNode->buildPositions();
 					nodeList.emplace(pred, concNode);
@@ -220,12 +223,12 @@ namespace regexpr {
 			scanFrom++;
 			for (auto i = scanFrom; i != closeBracket; i++) {//or check
 				auto orNode = std::dynamic_pointer_cast<Or>(*i);
-				if (orNode && orNode->isEmpty()) {
+				if (orNode && orNode->isProcessed()) {
 					auto pred = i;
 					pred--;
 					auto next = i;
 					next++;
-					if ((*pred)->isEmpty() || (*next)->isEmpty()) throw std::exception("Syntax error");
+					if ((*pred)->isProcessed() || (*next)->isProcessed()) throw std::exception("Syntax error");
 					orNode->setChildren(*pred, *next);
 					orNode->buildPositions();
 					(*pred)->setParent(orNode);
@@ -321,5 +324,10 @@ namespace regexpr {
 					}
 				}
 			}
+	}
+	PosVector SyntaxTree::firstPositions() const {
+		if(nodeList.size() == 1)
+			return nodeList.front()->firstPositions();
+		throw std::exception("Syntax tree is not created.");
 	}
 }

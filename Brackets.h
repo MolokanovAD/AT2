@@ -9,7 +9,7 @@ namespace regexpr {
 	//	Brackets() {};
 	//};
 	class Bracket : public ZeroOperator {
-		bool isEmpty() override { return true; }
+		bool isProcessed() override { return true; }
 	};
 	class OpenBracket : public Bracket {
 	public:
