@@ -5,7 +5,7 @@ namespace regexpr {
     public:
         Positive() {}
 
-        void buildFollowPos(std::vector<std::pair<It, PosVector>>& followPos) override;
+        void buildFollowPos(std::vector<std::pair<int, std::vector<int>>>& followPos) override;
         bool isNullable() override { return child->isNullable(); }
 
         virtual void print() override { std::cout << "+"; }

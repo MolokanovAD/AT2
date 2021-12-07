@@ -5,14 +5,14 @@ namespace regexpr {
 	regexpr::SyntaxTree::SyntaxTree(const std::string& s) {
 		create(s);
 	}
-	std::vector<std::pair<It, PosVector>> SyntaxTree::buildFPTable() {
+	FP SyntaxTree::buildFPTable() {
 		if (nodeList.size() != 1)
 			throw std::exception("Syntax tree is not created");
-		std::vector<std::pair<It, PosVector>> followPos;
+		FP followPos;
 		buildFollowTable(nodeList.front(),followPos);
 		return followPos;
 	}
-	void regexpr::SyntaxTree::buildFollowTable(SP_Node n, std::vector<std::pair<It, std::vector<It>>>& followPos) {
+	void regexpr::SyntaxTree::buildFollowTable(SP_Node n, FP& followPos) {
 		auto binary = std::dynamic_pointer_cast<BinaryOperator>(n);
 		if (binary) {
 			buildFollowTable(binary->getLeftChild(),followPos);
@@ -33,9 +33,11 @@ namespace regexpr {
 			switch (*i) {
 				case '#': {
 						if ((i + 1) != expr.end()) {
+							//if there are some symbols after '#'
 							i++;
-							nodeList.emplace_back(std::make_shared<Leaf>(i));
+							nodeList.emplace_back(std::make_shared<Leaf>(i-expr.begin(),*i));
 							if (std::find(alphabet.begin(), alphabet.end(), *i) == alphabet.end())
+								//if there's no such symbol in alphabet, it's being put there
 								alphabet.push_back(*i);
 							break;
 						}
@@ -59,16 +61,20 @@ namespace regexpr {
 						int from, to = INT_MAX;
 						i++;
 						while (std::isdigit(*i)) {
+							//forming string of digits which is the lower limit
 							fr += *i;
 							i++;
 						}
 						try {
+							//parsing the string
 							from = std::stoi(fr);
 						}
 						catch (std::exception& e) {
 							throw e;
 						}
 						if (*i == ',') {
+							//if ',' is met there is a second limit
+							//repeat same thing
 							i++;
 							fr.clear();
 							while (std::isdigit(*i)) {
@@ -105,7 +111,7 @@ namespace regexpr {
 						break;
 					}
 				default: {
-						nodeList.emplace_back(std::make_shared<Leaf>(i));
+						nodeList.emplace_back(std::make_shared<Leaf>(i-expr.begin(),*i));
 						if (std::find(alphabet.begin(), alphabet.end(), *i) == alphabet.end())
 							alphabet.push_back(*i);
 					}
@@ -113,7 +119,8 @@ namespace regexpr {
 		}
 		if (allBrackets.back().second == nullptr)throw std::exception("Syntax error");
 		nodeList.emplace_front(std::make_shared<OpenBracket>());
-		nodeList.emplace_back(std::make_shared<LastNode>(expr.end()));
+		nodeList.emplace_back(std::make_shared<LastNode>(expr.length()));
+		//pushing lastnode for RE->DFA algorithm
 		nodeList.emplace_back(std::make_shared<CloseBracket>());
 		allBrackets.emplace_back(std::pair<std::shared_ptr<NL_It>, std::shared_ptr<NL_It>>(std::make_shared<NL_It>(nodeList.begin()), std::make_shared<NL_It>(--nodeList.end())));
 	}
@@ -163,8 +170,8 @@ namespace regexpr {
 				SP_Pos positiveNode = std::dynamic_pointer_cast<Positive>(*i);
 				auto pred = i;
 				pred--;
-				if (positiveNode && positiveNode->isProcessed()) {
-					if ((*pred)->isProcessed()) throw std::exception("Syntax error");
+				if (positiveNode && positiveNode->isNotProcessed()) {
+					if ((*pred)->isNotProcessed()) throw std::exception("Syntax error");
 					positiveNode->setChild(*pred);
 					(*pred)->setParent(positiveNode);
 					positiveNode->buildPositions();
@@ -172,8 +179,8 @@ namespace regexpr {
 				}
 				else {
 					SP_Rep repeatNode = std::dynamic_pointer_cast<Repeat>(*i);
-					if (repeatNode && repeatNode->isProcessed()) {
-						if ((*pred)->isProcessed()) throw std::exception("Syntax error");
+					if (repeatNode && repeatNode->isNotProcessed()) {
+						if ((*pred)->isNotProcessed()) throw std::exception("Syntax error");
 						repeatNode->setChild(*pred);
 						(*pred)->setParent(repeatNode);
 						repeatNode->buildPositions();
@@ -182,6 +189,7 @@ namespace regexpr {
 				}
 
 			}
+			//going back to scan the string again
 			scanFrom = openBracket;
 			scanFrom++;
 			scanFrom++;
@@ -189,11 +197,10 @@ namespace regexpr {
 				auto pred = i;
 				pred--;
 				auto concatNode = std::dynamic_pointer_cast<Concat>(*i);
-				if (concatNode && (*concatNode).isProcessed()) {//if . metasymbol is met
-					//set all parents
+				if (concatNode && (*concatNode).isNotProcessed()) {//if . metasymbol is met
 					auto next = i;
 					next++;
-					if ((*next)->isProcessed() || (*pred)->isProcessed()) throw std::exception("Syntax error");
+					if ((*next)->isNotProcessed() || (*pred)->isNotProcessed()) throw std::exception("Syntax error");
 					(*concatNode).setChildren(*pred, *next);
 					(*pred)->setParent(concatNode);
 					(*next)->setParent(concatNode);
@@ -203,9 +210,9 @@ namespace regexpr {
 				}
 				else {
 					//if non-processed OR-node is met we don't touch it
-					if (std::dynamic_pointer_cast<Or>(*i) && (*i)->isProcessed() || std::dynamic_pointer_cast<Or>(*pred) && (*pred)->isProcessed()) continue;
+					if (std::dynamic_pointer_cast<Or>(*i) && (*i)->isNotProcessed() || std::dynamic_pointer_cast<Or>(*pred) && (*pred)->isNotProcessed()) continue;
 					//otherwise, if we have empty not OR node, it's a mistake
-					if((*pred)->isProcessed() || (*i)->isProcessed()) throw std::exception("Syntax error");
+					if((*pred)->isNotProcessed() || (*i)->isNotProcessed()) throw std::exception("Syntax error");
 					auto concNode = std::make_shared<Concat>(*pred, *i);
 					concNode->buildPositions();
 					nodeList.emplace(pred, concNode);
@@ -223,12 +230,12 @@ namespace regexpr {
 			scanFrom++;
 			for (auto i = scanFrom; i != closeBracket; i++) {//or check
 				auto orNode = std::dynamic_pointer_cast<Or>(*i);
-				if (orNode && orNode->isProcessed()) {
+				if (orNode && orNode->isNotProcessed()) {
 					auto pred = i;
 					pred--;
 					auto next = i;
 					next++;
-					if ((*pred)->isProcessed() || (*next)->isProcessed()) throw std::exception("Syntax error");
+					if ((*pred)->isNotProcessed() || (*next)->isNotProcessed()) throw std::exception("Syntax error");
 					orNode->setChildren(*pred, *next);
 					orNode->buildPositions();
 					(*pred)->setParent(orNode);
@@ -238,6 +245,7 @@ namespace regexpr {
 				}
 			}
 			allBrackets.erase(allBrackets.begin());
+			//popping out pair of brackets which was just processed
 			if (isGroup) {
 				scanFrom--;
 				auto gr = std::make_shared<Group>(*scanFrom, num);
@@ -325,7 +333,7 @@ namespace regexpr {
 				}
 			}
 	}
-	PosVector SyntaxTree::firstPositions() const {
+	std::vector<int> SyntaxTree::firstPositions() const {
 		if(nodeList.size() == 1)
 			return nodeList.front()->firstPositions();
 		throw std::exception("Syntax tree is not created.");

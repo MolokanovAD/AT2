@@ -1,7 +1,7 @@
 #include "Functions.h"
 
 namespace regexpr {
-	void addPositions(std::vector<std::pair<It, PosVector>>& followPos, PosVector first, PosVector second) {
+	void addPositions(std::vector<std::pair<int, std::vector<int>>>& followPos, std::vector<int> first, std::vector<int> second) {
 		for (auto k : first) {
 			auto i = followPos.begin();
 			for (; i < followPos.end(); i++) {
@@ -14,7 +14,7 @@ namespace regexpr {
 				}
 			}
 			if (i == followPos.end()) {
-				followPos.push_back(std::pair<It, PosVector>(k, second));
+				followPos.push_back(std::pair<int, std::vector<int>>(k, second));
 			}
 		}
 	}

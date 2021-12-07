@@ -3,8 +3,8 @@
 namespace regexpr {
     class LastNode : public Node {
     public:
-        LastNode(std::string::const_iterator i) : Node(false, i) {}
-        bool isProcessed()override { return false; }
+        LastNode(int i) : Node(false, i) {}
+        bool isNotProcessed()override { return false; }
         void print() override {}
         virtual ~LastNode() {}
     };

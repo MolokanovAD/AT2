@@ -7,9 +7,9 @@ namespace regexpr {
 		char value;
 	public:
 		Leaf() :Node(true) {}
-		Leaf(std::string::const_iterator i) :Node(false,i), value(*i) {}
+		Leaf(int i, char val) :Node(false,i), value(val) {}
 		//bool isEmptyString() const{ return nullable; }
-		bool isProcessed() override { return false; }
+		bool isNotProcessed() override { return false; }
 		char getValue() const{ return value; }
 
 		virtual void print();

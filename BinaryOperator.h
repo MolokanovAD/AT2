@@ -8,7 +8,7 @@ namespace regexpr {
     public:
         BinaryOperator() {}
         BinaryOperator(SP_Node left, SP_Node right) :leftChild(left), rightChild(right) {}
-        bool isProcessed() override { return !(leftChild.get() || rightChild.get()); }
+        bool isNotProcessed() override { return !(leftChild.get() || rightChild.get()); }
         void setChildren(SP_Node left, SP_Node right);
         SP_Node getLeftChild() { return leftChild; }
         SP_Node getRightChild() { return rightChild; }

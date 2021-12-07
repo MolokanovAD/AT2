@@ -14,7 +14,7 @@
 
 namespace regexpr {
 	typedef std::list<SP_Node>::iterator NL_It;
-
+	typedef std::vector<std::pair<int, std::vector<int>>> FP;
 	class SyntaxTree {
 	private:
 		std::string expr;
@@ -23,16 +23,16 @@ namespace regexpr {
 		std::list<int> groups;
 		std::vector<char> alphabet;
 		void createNodeList();
-		void buildFollowTable(SP_Node, std::vector<std::pair<It, PosVector>>& followPos);
+		void buildFollowTable(SP_Node, FP& followPos);
 		void printSubTree(SP_Node, int);
 	public:
 		SyntaxTree() {}
 		SyntaxTree(const std::string& s);
-		PosVector firstPositions() const;
+		std::vector<int> firstPositions() const;
 		std::string getExpression() const { return expr; }
 		//void setExpr(const std::string& s) { expr = s; }
 		void create(const std::string& s);
-		std::vector<std::pair<It, PosVector>> buildFPTable();
+		FP buildFPTable();
 		void print();
 	};
 	

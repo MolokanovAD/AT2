@@ -1,13 +1,16 @@
 #pragma once
 #include "State.h"
+#include <algorithm>
 #include <list>
 namespace regexpr {
 	class DFA {
 	private:
 		std::string expr;
-		std::list<std::shared_ptr<State>> state;
+		std::vector<std::shared_ptr<State>> states;
 	public:
-		DFA(const PosVector& first, std::vector<std::pair<It, PosVector>> followPos, const std::string& s);
+		DFA(const std::vector<int>& first, std::vector<std::pair<int, std::vector<int>>> followPos, const std::string& s);
+		void print();
+		~DFA() {}
 	};
 
 }

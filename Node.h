@@ -7,26 +7,26 @@
 namespace regexpr {
 
 	typedef std::string::const_iterator It;
-	typedef std::vector<std::string::const_iterator> PosVector;
+	//typedef std::vector<std::string::const_iterator> PosVector;
 	class Node {
 	protected:
 		std::shared_ptr<Node> parent;
 
 		bool nullable;
-		PosVector firstPos;
-		PosVector lastPos;
+		std::vector<int> firstPos;
+		std::vector<int> lastPos;
 	public:
 		Node() {}
 		Node(bool n) :nullable(n) {}
-		Node(bool n, PosVector f, PosVector l) :nullable(n),firstPos(f),lastPos(l) {}
-		Node(bool n, It l) :nullable(n) { firstPos.push_back(l); lastPos.push_back(l); }
+		Node(bool n, std::vector<int> f, std::vector<int> l) :nullable(n),firstPos(f),lastPos(l) {}
+		Node(bool n, int l) :nullable(n) { firstPos.push_back(l); lastPos.push_back(l); }
 		void setParent(std::shared_ptr<Node> p) { parent = p; }
-		virtual bool isProcessed() = 0;
+		virtual bool isNotProcessed() = 0;
 		virtual bool isNullable() { return nullable; }
-		PosVector firstPositions() { return firstPos; }
-		PosVector lastPositions() { return lastPos; }
+		std::vector<int> firstPositions() { return firstPos; }
+		std::vector<int> lastPositions() { return lastPos; }
 		virtual void buildPositions() {}
-		virtual void buildFollowPos(std::vector<std::pair<It, PosVector>>& followPos) {  }
+		virtual void buildFollowPos(std::vector<std::pair<int, std::vector<int>>>& followPos) {  }
 		virtual void print() = 0;
 		virtual ~Node() {}
 	};

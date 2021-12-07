@@ -9,9 +9,10 @@ using namespace regexpr;
 int main() {
 	SyntaxTree a;
 	try {
-		a.create("(m|e)p(h|i)");
-		a.print();
+		a.create("(m|e)p(h|i)+");
+		//a.print();
 		DFA automat(a.firstPositions(),a.buildFPTable(),a.getExpression());
+		automat.print();
 	}
 	catch (std::exception& a) {
 		std::cout << a.what();

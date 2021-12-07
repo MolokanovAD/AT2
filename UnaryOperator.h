@@ -7,7 +7,7 @@ namespace regexpr {
 	public:
 		UnaryOperator() : Operator() {}
 		UnaryOperator(SP_Node c) : Operator(),child(c) {}
-		bool isProcessed() override { return !child.get(); }
+		bool isNotProcessed() override { return !child.get(); }
 		void setChild(SP_Node c) { child = c; }
 		SP_Node getChild() { return child; }
 
