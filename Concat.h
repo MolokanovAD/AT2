@@ -8,7 +8,7 @@ namespace regexpr {
 
 		void buildPositions() override ;
 		bool isNullable() override { return leftChild->isNullable() && rightChild->isNullable(); };
-		void buildFollowPos(std::vector<std::pair<int, std::vector<int>>>& followPos) override;
+		void buildFollowPos(std::vector<std::pair<int, std::unordered_set<int>>>& followPos) override;
 
 		virtual void print() override { std::cout << "."; }
 

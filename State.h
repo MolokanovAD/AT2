@@ -1,20 +1,22 @@
 #pragma once
 #include "Node.h"
+#include <set>
 namespace regexpr {
 	class State {
 	private:
 		bool recieving;
 		bool processed;
-		std::vector<int> positions;
-		std::vector<std::pair<std::vector<int>,std::shared_ptr<State>>> transitions;
+		std::unordered_set<int> positions;
+		//std::vector<std::pair<std::vector<int>,std::shared_ptr<State>>> transitions;
+		std::vector<std::pair<char,std::shared_ptr<State>>> transitions;
 	public:
-		State(std::vector<int> p,bool r):positions(p),recieving(r),processed(false){}
-		std::vector<int> getPositions() const { return positions; }
-		std::vector<std::pair<std::vector<int>, std::shared_ptr<State>>> getTransitions() { return transitions; }
-		bool isNotProcessed()const { return processed; }
+		State(std::unordered_set<int> p,bool r):positions(p),recieving(r),processed(false){}
+		std::unordered_set<int> getPositions() const { return positions; }
+		std::vector<std::pair<char, std::shared_ptr<State>>> getTransitions() { return transitions; }
+		bool isProcessed()const { return processed; }
 		bool isRecieving()const { return recieving; }
 		void process() { processed = true; }
-		bool samePositions(std::vector<int> v)const;
-		void addTransition(std::vector<int> a, std::shared_ptr<State> s);
+		void addTransition(char a, std::shared_ptr<State> s);
 	};
+	typedef std::shared_ptr<State> SP_State;
 }

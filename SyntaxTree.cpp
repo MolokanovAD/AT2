@@ -36,9 +36,7 @@ namespace regexpr {
 							//if there are some symbols after '#'
 							i++;
 							nodeList.emplace_back(std::make_shared<Leaf>(i-expr.begin(),*i));
-							if (std::find(alphabet.begin(), alphabet.end(), *i) == alphabet.end())
-								//if there's no such symbol in alphabet, it's being put there
-								alphabet.push_back(*i);
+							alphabet.insert(*i);
 							break;
 						}
 						else throw std::exception("Syntax error");
@@ -46,6 +44,27 @@ namespace regexpr {
 				case '(': {
 						nodeList.emplace_back(std::make_shared<OpenBracket>());
 						allBrackets.emplace_front(std::pair<std::shared_ptr<NL_It>, std::shared_ptr<NL_It>>(std::make_shared<NL_It>(--nodeList.end()), nullptr));
+						std::string number("");
+						auto symbol = i;
+						symbol++;
+						while (true) {
+							if (std::isdigit(*symbol)) {
+								number += *symbol;
+							}
+							else if (*symbol == ':' && !number.empty()) {
+								symbol++;
+								if (symbol < expr.end() && *symbol != ')') {
+									int num = std::stoi(number);
+									nodeList.emplace_back(std::make_shared<Group>(num));
+									groups.emplace_back(num);
+									i = --symbol;
+									break;
+								}
+								else throw std::exception("Syntax error");
+							}
+							else break;
+							symbol++;
+						}
 						break;
 					}
 				case ')': {
@@ -88,7 +107,7 @@ namespace regexpr {
 								throw e;
 							}
 						}
-						if (*i == '}') {
+						if (*i == '}' && from <= to) {
 							nodeList.emplace_back(std::make_shared<Repeat>(from, to));
 							break;
 						}
@@ -112,8 +131,7 @@ namespace regexpr {
 					}
 				default: {
 						nodeList.emplace_back(std::make_shared<Leaf>(i-expr.begin(),*i));
-						if (std::find(alphabet.begin(), alphabet.end(), *i) == alphabet.end())
-							alphabet.push_back(*i);
+						alphabet.insert(*i);
 					}
 			}
 		}
@@ -137,34 +155,38 @@ namespace regexpr {
 			scanFrom++;
 			std::string number("");
 			bool isGroup = false;
-			int num;//group number
-			while (true) {//numbered group check
-				SP_Leaf n = std::dynamic_pointer_cast<Leaf>(*scanFrom);
-				char symbol;
-				if (n) {
-					symbol = (*n).getValue();
-					if (std::isdigit(symbol)) {
-						number += symbol;
-					}
-					else if (symbol == ':' && !number.empty()) {
-						scanFrom++;
-						if (scanFrom != closeBracket) {
-							//this is a numbered group
-							isGroup = true;
-							num = std::stoi(number);
-							auto f = openBracket;
-							f++;
-							//delete n: leafs from nodeList
-							nodeList.erase(f, scanFrom);
-							break;
-						}
-						else throw std::exception("Syntax error");//(1:) situation
-					}
-					else break;//average brackets
-				}
-				else break;//average brackets
-				scanFrom++;
+			auto gr = std::dynamic_pointer_cast<Group>(*scanFrom);
+			if (gr && gr->isNotProcessed()) {
+				isGroup = true;
+				openBracket = scanFrom;
 			}
+			//while (true) {//numbered group check
+			//	SP_Leaf n = std::dynamic_pointer_cast<Leaf>(*scanFrom);
+			//	char symbol;
+			//	if (n) {
+			//		symbol = (*n).getValue();
+			//		if (std::isdigit(symbol)) {
+			//			number += symbol;
+			//		}
+			//		else if (symbol == ':' && !number.empty()) {
+			//			scanFrom++;
+			//			if (scanFrom != closeBracket) {
+			//				//this is a numbered group
+			//				isGroup = true;
+			//				num = std::stoi(number);
+			//				auto f = openBracket;
+			//				f++;
+			//				//delete n: leafs from nodeList and from alphabet
+			//				nodeList.erase(f, scanFrom);
+			//				break;
+			//			}
+			//			else throw std::exception("Syntax error");//(1:) situation
+			//		}
+			//		else break;//average brackets
+			//	}
+			//	else break;//average brackets
+			//	scanFrom++;
+			//}
 			if(scanFrom != closeBracket) scanFrom++;
 			for (auto i = scanFrom; i != closeBracket; i++) {//positive closure and repeat check
 				SP_Pos positiveNode = std::dynamic_pointer_cast<Positive>(*i);
@@ -247,12 +269,11 @@ namespace regexpr {
 			allBrackets.erase(allBrackets.begin());
 			//popping out pair of brackets which was just processed
 			if (isGroup) {
-				scanFrom--;
-				auto gr = std::make_shared<Group>(*scanFrom, num);
+				scanFrom = openBracket;
+				openBracket--;
+				auto gr = std::dynamic_pointer_cast<Group>(*scanFrom);
+				gr->setChild(*(++scanFrom));
 				gr->buildPositions();
-				nodeList.emplace(scanFrom, gr);
-				if (std::find(groups.begin(), groups.end(), num) != groups.end()) throw std::exception("Group with this number already exists");
-				groups.emplace_back(num);
 				nodeList.erase(scanFrom);
 			}
 			nodeList.erase(openBracket);
@@ -333,7 +354,7 @@ namespace regexpr {
 				}
 			}
 	}
-	std::vector<int> SyntaxTree::firstPositions() const {
+	std::unordered_set<int> SyntaxTree::firstPositions() const {
 		if(nodeList.size() == 1)
 			return nodeList.front()->firstPositions();
 		throw std::exception("Syntax tree is not created.");

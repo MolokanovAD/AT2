@@ -1,20 +1,19 @@
 #include "Functions.h"
 
 namespace regexpr {
-	void addPositions(std::vector<std::pair<int, std::vector<int>>>& followPos, std::vector<int> first, std::vector<int> second) {
-		for (auto k : first) {
-			auto i = followPos.begin();
-			for (; i < followPos.end(); i++) {
-				if ((*i).first == k) {
-					for (auto j : second) {
-						if (std::find((*i).second.begin(), (*i).second.end(), j) == (*i).second.end())
-							(*i).second.push_back(j);
-					}
-					continue;
+	void addPositions(std::vector<std::pair<int, std::unordered_set<int>>>& followPos, std::unordered_set<int> first, std::unordered_set<int> second) {
+		for (auto pos : first) {
+			//for each position which is a name of line in FP table
+			auto fpLine = followPos.begin();
+			for (; fpLine < followPos.end(); fpLine++) {
+				if ((*fpLine).first == pos) {
+					(*fpLine).second.insert(second.begin(), second.end());
+					break;
 				}
 			}
-			if (i == followPos.end()) {
-				followPos.push_back(std::pair<int, std::vector<int>>(k, second));
+			if (fpLine == followPos.end()) {
+				//if there is no such line in FP table
+				followPos.push_back(std::pair<int, std::unordered_set<int>>(pos, second));
 			}
 		}
 	}
