@@ -36,48 +36,28 @@ regexpr::DFA::DFA(const std::unordered_set<int>& first, std::vector<std::pair<in
 		S->process();
 		S = firstNotProcessed();
 	}
-	//while (!S->isNotProcessed()) {
-	//	std::vector<int> newStatePositions;
-	//	bool foundFPLine = false;
-	//	for (auto i : S->getPositions()) {
-	//		//for each position
-	//		for (auto j : followPos) {
-	//			//for each line in FP 
-	//			if (i == j.first) {
-	//				foundFPLine = true;
-	//				for (int k : j.second) {
-	//					//for each follow position
-	//					if (std::find(newStatePositions.begin(), newStatePositions.end(), k) == newStatePositions.end()) {
-	//						//if there is no such position in newStatePositions
-	//						newStatePositions.push_back(k);
-	//					}
-	//				}
-	//				break;
-	//			}
-	//		}
-	//	}
-	//	if (foundFPLine) {
-	//		//if there are transitions from the state
-	//		auto i = states.begin();
-	//		for (; i < states.end(); i++) {
-	//			if ((*i)->samePositions(newStatePositions)) {
-	//				break;
-	//			}
-	//		}
-	//		auto pos = S->getPositions();
-	//		auto last = std::find(pos.begin(), pos.end(), expr.length());
-	//		if (last != pos.end())
-	//			pos.erase(last);
-	//		if (i == states.end()) {
-	//			states.push_back(std::make_shared<State>(newStatePositions, std::find(newStatePositions.begin(), newStatePositions.end(), expr.length()) != newStatePositions.end()));
-	//			S->addTransition(pos, *(--states.end()));
-	//		}
-	//		else
-	//			S->addTransition(pos, *i);
-	//	}
-	//	S->process();
-	//	S = *(--states.end());
+}
+void regexpr::DFA::minimize() {
+	//std::vector<std::unordered_set<SP_State>> groups;
+	//groups.push_back(std::unordered_set<SP_State>());
+	//groups.push_back(std::unordered_set<SP_State>());
+	//for (auto i : states) {
+	//	if (i->isRecieving())
+	//		groups[1].insert(i);
+	//	else
+	//		groups[0].insert(i);
 	//}
+	std::vector<Split> groups;
+	for (auto i : states) {
+		int g = i->isRecieving();
+		groups.push_back(Split(i, g, g));
+	}
+
+	for (auto i : groups) {
+		for (auto symbol : alphabet) {
+
+		}
+	}
 }
 std::shared_ptr<regexpr::State> regexpr::DFA::firstNotProcessed() {
 	auto i = states.begin();
