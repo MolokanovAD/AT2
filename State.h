@@ -17,6 +17,7 @@ namespace regexpr {
 		bool isRecieving()const { return recieving; }
 		void process() { processed = true; }
 		void addTransition(char a, std::shared_ptr<State> s);
+		std::shared_ptr<State> transmit(char a);
 	};
 	typedef std::shared_ptr<State> SP_State;
 }

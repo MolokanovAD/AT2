@@ -160,33 +160,6 @@ namespace regexpr {
 				isGroup = true;
 				openBracket = scanFrom;
 			}
-			//while (true) {//numbered group check
-			//	SP_Leaf n = std::dynamic_pointer_cast<Leaf>(*scanFrom);
-			//	char symbol;
-			//	if (n) {
-			//		symbol = (*n).getValue();
-			//		if (std::isdigit(symbol)) {
-			//			number += symbol;
-			//		}
-			//		else if (symbol == ':' && !number.empty()) {
-			//			scanFrom++;
-			//			if (scanFrom != closeBracket) {
-			//				//this is a numbered group
-			//				isGroup = true;
-			//				num = std::stoi(number);
-			//				auto f = openBracket;
-			//				f++;
-			//				//delete n: leafs from nodeList and from alphabet
-			//				nodeList.erase(f, scanFrom);
-			//				break;
-			//			}
-			//			else throw std::exception("Syntax error");//(1:) situation
-			//		}
-			//		else break;//average brackets
-			//	}
-			//	else break;//average brackets
-			//	scanFrom++;
-			//}
 			if(scanFrom != closeBracket) scanFrom++;
 			for (auto i = scanFrom; i != closeBracket; i++) {//positive closure and repeat check
 				SP_Pos positiveNode = std::dynamic_pointer_cast<Positive>(*i);

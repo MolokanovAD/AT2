@@ -47,15 +47,32 @@ void regexpr::DFA::minimize() {
 	//	else
 	//		groups[0].insert(i);
 	//}
-	std::vector<Split> groups;
+	std::unordered_set<Split> oldStates;
+	int groupsTotal = 2;
 	for (auto i : states) {
 		int g = i->isRecieving();
-		groups.push_back(Split(i, g, g));
+		oldStates.insert(Split(i, g, g, g));
 	}
-
-	for (auto i : groups) {
-		for (auto symbol : alphabet) {
-
+	for (auto symbol : alphabet) {
+		for (auto state : oldStates) {
+			auto to = std::get<0>(state)->transmit(symbol);
+			for (auto i : oldStates) {
+				//searching for destination in set
+				auto toInfo = std::get<0>(i);
+				if (toInfo == to) {
+					std::get<3>(state) = std::get<2>(i);
+				}
+			}
+		}
+		for (auto i : oldStates) {
+			bool createdGroup = false;
+			for (auto j : oldStates) {
+				if (std::get<2>(i) == std::get<2>(j) && std::get<3>(i) != std::get<3>(j)) {
+					std::get<2>(j) = groupsTotal;
+				}
+			}
+			if (createdGroup)
+				groupsTotal++;
 		}
 	}
 }

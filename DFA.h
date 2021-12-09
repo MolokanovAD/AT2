@@ -15,5 +15,5 @@ namespace regexpr {
 		void print();
 		~DFA() {}
 	};
-	typedef std::tuple<SP_State, int, int> Split;
+	typedef std::tuple<SP_State, int, int, int> Split;//<state,previous group, current group, goes to>
 }
