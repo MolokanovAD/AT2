@@ -15,6 +15,7 @@ int main() {
 		a.create("(m|e)p(h|i)");
 		a.print();
 		DFA automat(a.firstPositions(),a.buildFPTable(),a.getExpression(),a.getAlphabet());
+		automat.minimize();
 		automat.print();
 	}
 	catch (std::exception& a) {

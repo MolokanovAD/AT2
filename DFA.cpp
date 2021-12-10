@@ -37,43 +37,70 @@ regexpr::DFA::DFA(const std::unordered_set<int>& first, std::vector<std::pair<in
 		S = firstNotProcessed();
 	}
 }
+
 void regexpr::DFA::minimize() {
-	//std::vector<std::unordered_set<SP_State>> groups;
-	//groups.push_back(std::unordered_set<SP_State>());
-	//groups.push_back(std::unordered_set<SP_State>());
-	//for (auto i : states) {
-	//	if (i->isRecieving())
-	//		groups[1].insert(i);
-	//	else
-	//		groups[0].insert(i);
-	//}
-	std::unordered_set<Split> oldStates;
+	std::vector<Split> oldStates;
 	int groupsTotal = 2;
 	for (auto i : states) {
 		int g = i->isRecieving();
-		oldStates.insert(Split(i, g, g, g));
+		if (!i->isError())
+			oldStates.push_back(Split(i, g, g, g));
+		else {
+			oldStates.push_back(Split(i, groupsTotal, groupsTotal, groupsTotal));
+			groupsTotal++;
+		}
 	}
-	for (auto symbol : alphabet) {
-		for (auto state : oldStates) {
-			auto to = std::get<0>(state)->transmit(symbol);
-			for (auto i : oldStates) {
-				//searching for destination in set
-				auto toInfo = std::get<0>(i);
-				if (toInfo == to) {
-					std::get<3>(state) = std::get<2>(i);
+	bool changed = false;
+	do {
+		for (auto symbol : alphabet) {
+			changed = false;
+			for (auto& state : oldStates) {
+				auto to = std::get<0>(state)->transmit(symbol);
+				for (auto i : oldStates) {
+					//searching for destination in set
+					if (std::get<0>(i).get() == to.get()) {
+						std::get<3>(state) = std::get<2>(i);
+						break;
+					}
+				}
+			}
+			int oldGroupsTotal = groupsTotal;
+			for (int g = 0; g < oldGroupsTotal; g++) {
+				int first = -1;
+				for (auto& i : oldStates) {
+					if (std::get<2>(i) == g) {
+						if (first == -1)
+							first = std::get<3>(i);
+						else if (std::get<3>(i) != first) {
+							std::get<2>(i) = groupsTotal;
+							changed = true;
+						}
+					}
+				}
+				if (changed) {
+					groupsTotal++;
+					break;
 				}
 			}
 		}
-		for (auto i : oldStates) {
-			bool createdGroup = false;
-			for (auto j : oldStates) {
-				if (std::get<2>(i) == std::get<2>(j) && std::get<3>(i) != std::get<3>(j)) {
-					std::get<2>(j) = groupsTotal;
-				}
+	} while (changed);
+	states.clear();
+	std::vector<std::vector<std::pair<char, int>>> transit;
+	for (int g = 0; g < groupsTotal; g++) {
+		std::unordered_set<int> pos;
+		bool rec = false;
+		Split s;
+		for (auto& i : oldStates) {
+			if (std::get<2>(i) == g) {
+				s = i;
+				for (auto p : std::get<0>(i)->getPositions())
+					pos.insert(p);
+				rec = std::get<0>(i)->isRecieving();
 			}
-			if (createdGroup)
-				groupsTotal++;
 		}
+		std::get<0>(s);
+		states.push_back(std::make_shared<State>(pos, rec));
+		transit.push_back(std::vector<std::pair<char, int>>());
 	}
 }
 std::shared_ptr<regexpr::State> regexpr::DFA::firstNotProcessed() {

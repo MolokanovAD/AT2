@@ -135,7 +135,7 @@ namespace regexpr {
 					}
 			}
 		}
-		if (allBrackets.back().second == nullptr)throw std::exception("Syntax error");
+		if (allBrackets .size() && allBrackets.back().second == nullptr)throw std::exception("Syntax error");
 		nodeList.emplace_front(std::make_shared<OpenBracket>());
 		nodeList.emplace_back(std::make_shared<LastNode>(expr.length()));
 		//pushing lastnode for RE->DFA algorithm
