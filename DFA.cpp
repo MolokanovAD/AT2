@@ -44,40 +44,42 @@ void regexpr::DFA::minimize() {
 	for (auto i : states) {
 		int g = i->isRecieving();
 		if (!i->isError())
-			oldStates.push_back(Split(i, g, g, g));
+			oldStates.push_back(Split(i, g, g, {}));
 		else {
-			oldStates.push_back(Split(i, groupsTotal, groupsTotal, groupsTotal));
+			oldStates.push_back(Split(i, groupsTotal, groupsTotal, {}));
 			groupsTotal++;
 		}
 	}
 	bool changed = false;
 	do {
+		changed = false;
 		for (auto symbol : alphabet) {
-			changed = false;
 			for (auto& state : oldStates) {
 				auto to = std::get<0>(state)->transmit(symbol);
 				for (auto i : oldStates) {
 					//searching for destination in set
 					if (std::get<0>(i).get() == to.get()) {
-						std::get<3>(state) = std::get<2>(i);
+						std::get<3>(state)[symbol] = std::get<2>(i);
 						break;
 					}
 				}
 			}
 			int oldGroupsTotal = groupsTotal;
 			for (int g = 0; g < oldGroupsTotal; g++) {
+				bool needNewGroup = false;
 				int first = -1;
 				for (auto& i : oldStates) {
 					if (std::get<2>(i) == g) {
 						if (first == -1)
-							first = std::get<3>(i);
-						else if (std::get<3>(i) != first) {
+							first = std::get<3>(i)[symbol];
+						else if (std::get<3>(i)[symbol] != first) {
 							std::get<2>(i) = groupsTotal;
-							changed = true;
+							needNewGroup = true;
 						}
 					}
 				}
-				if (changed) {
+				if (needNewGroup) {
+					changed = true;
 					groupsTotal++;
 					break;
 				}
@@ -85,7 +87,7 @@ void regexpr::DFA::minimize() {
 		}
 	} while (changed);
 	states.clear();
-	std::vector<std::vector<std::pair<char, int>>> transit;
+	std::vector<std::map<char,int>> transit;
 	for (int g = 0; g < groupsTotal; g++) {
 		std::unordered_set<int> pos;
 		bool rec = false;
@@ -98,9 +100,14 @@ void regexpr::DFA::minimize() {
 				rec = std::get<0>(i)->isRecieving();
 			}
 		}
-		std::get<0>(s);
 		states.push_back(std::make_shared<State>(pos, rec));
-		transit.push_back(std::vector<std::pair<char, int>>());
+		transit.push_back(std::get<3>(s));
+	}
+	for (char c : alphabet) {
+		auto j = transit.begin();
+		for (auto i = states.begin(); i < states.end();i++,j++) {
+			(*i)->addTransition(c, states[(*j)[c]]);
+		}
 	}
 }
 std::shared_ptr<regexpr::State> regexpr::DFA::firstNotProcessed() {

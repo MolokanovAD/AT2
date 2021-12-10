@@ -2,6 +2,7 @@
 #include "State.h"
 #include <algorithm>
 #include <list>
+#include <map>
 namespace regexpr {
 	class DFA {
 	private:
@@ -15,5 +16,5 @@ namespace regexpr {
 		void print();
 		~DFA() {}
 	};
-	typedef std::tuple<SP_State, int, int, int> Split;//<state,previous group, current group, goes to>
+	typedef std::tuple<SP_State, int, int, std::map<char,int>> Split;//<state,previous group, current group, goes to>
 }
