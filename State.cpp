@@ -10,3 +10,10 @@ regexpr::SP_State regexpr::State::transmit(char a) {
 	}
 	return regexpr::SP_State();
 }
+bool regexpr::State::isError() const {
+	for (auto i : transitions) {
+		if (i.second.get() != this)
+			return false;
+	}
+	return !recieving;
+}
