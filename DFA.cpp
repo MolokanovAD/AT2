@@ -161,7 +161,7 @@ void regexpr::DFA::buildBasis(vector3d& matrix, std::set<char> metaSymbols) {
 			std::string sign("");
 			sign += transition.first;
 			if (metaSymbols.find(transition.first) != metaSymbols.end())
-				sign = "#" + transition.first;
+				sign.insert(sign.begin(),'#');
 			if (!matrix[i][j][0].get())
 				matrix[i][j][0] = std::make_shared<std::string>(sign);
 			else {
@@ -213,80 +213,6 @@ std::string regexpr::DFA::kPath(vector3d& matrix, SP_State iState, SP_State jSta
 	return result;
 }
 
-std::string regexpr::DFA::k_path(vector3d memoryMatrix, std::unordered_set<std::string>& meta, std::shared_ptr<regexpr::State> i, std::shared_ptr<regexpr::State> j, unsigned short k) {
-	unsigned short in = i->getNumber(), jn = j->getNumber();
-	if (k == 0) {
-		if (!memoryMatrix[in][jn][k].get()) {
-			if (in == jn)
-				memoryMatrix[in][jn][k] = std::make_shared<std::string>("e{,0})");
-			else
-				memoryMatrix[in][jn][k] = std::make_shared<std::string>("");
-			std::vector<std::pair<char, SP_State>> lst = i->getTransitions();
-			//std::unique_ptr<std::list<std::unique_ptr<Transition>>> lst(i->getAllTransitions());
-			for (auto n = lst.begin(); n < lst.end(); n++) {
-				if((*n).second->transmit((*n).first) == j) {
-				//if ((*n)->getTargetState() == j) {
-					if (!(memoryMatrix[in][jn][k].get() == nullptr)) {//maybe also "" 
-						*memoryMatrix[in][jn][k] += '|';
-					}
-					bool addbr = memoryMatrix[in][jn][k].get() != nullptr && (*memoryMatrix[in][jn][k]).length() > 1;
-					if (addbr)
-						*memoryMatrix[in][jn][k] += '(';
-					std::string tmp("");
-					tmp += (*n).first;
-					if (meta.find(tmp) != meta.end())
-						tmp = '&' + tmp;
-					*memoryMatrix[in][jn][k] += tmp.empty() ? "." : tmp;
-					if (addbr)
-						*memoryMatrix[in][jn][k] += ')';
-				}
-			}
-		}
-		return *memoryMatrix[in][jn][k];
-	}
-	else {
-		std::string result = "";
-		std::string tmpres = "";
-		std::string tmpres2 = "";
-		memoryMatrix[in][jn][k - 1] = memoryMatrix[in][jn][k - 1].get() ? memoryMatrix[in][jn][k - 1] : std::make_shared<std::string>(k_path(memoryMatrix, meta, i, j, k - 1));
-		tmpres = *memoryMatrix[in][jn][k - 1];
-		if (!tmpres.empty()) {
-			bool addbr = tmpres.size() > 1;
-			if (addbr)
-				result += '(';
-			result += tmpres;
-			if (addbr)
-				result += ')';
-		}
-		memoryMatrix[in][k - 1][k - 1] = memoryMatrix[in][k - 1][k - 1].get() ? memoryMatrix[in][k - 1][k - 1] : std::make_shared<std::string>(k_path(memoryMatrix, meta, i, states[k - 1], k - 1));
-		tmpres = *memoryMatrix[in][k - 1][k - 1];
-		if (tmpres.empty())
-			return result;
-		tmpres2 += tmpres;
-		tmpres2 += '(';
-		memoryMatrix[k - 1][k - 1][k - 1] = memoryMatrix[k - 1][k - 1][k - 1].get() ? memoryMatrix[k - 1][k - 1][k - 1] : std::make_shared<std::string>(k_path(memoryMatrix, meta, states[k - 1], states[k - 1], k - 1));
-		tmpres = *memoryMatrix[k - 1][k - 1][k - 1];
-		tmpres2 += tmpres;
-		tmpres2 += "){,}";
-		memoryMatrix[k - 1][jn][k - 1] = memoryMatrix[k - 1][jn][k - 1].get() ? memoryMatrix[k - 1][jn][k - 1] : std::make_shared<std::string>(k_path(memoryMatrix, meta, states[k - 1], j, k - 1));
-		tmpres = *memoryMatrix[k - 1][jn][k - 1];
-		if (tmpres.empty())
-			return result;
-		tmpres2 += tmpres;
-		bool addbracket = false;
-		if (!result.empty()) {
-			result += "|";
-			if (tmpres2.size() > 1) {
-				result += '(';
-				addbracket = true;
-			}
-		}
-		result += tmpres2;
-		if (addbracket)
-			result += ')';
-		return result;
-	}
-}
 
 void regexpr::DFA::print() {
 	int k = 0;

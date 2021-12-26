@@ -12,7 +12,7 @@ using namespace regexpr;
 int main() {
 	SyntaxTree a;
 	try {
-		a.create("ab+");
+		a.create("#(ab+");
 		a.print();
 		DFA automat(a.firstPositions(),a.buildFPTable(),a.getExpression(),a.getAlphabet());
 		//automat.minimize();

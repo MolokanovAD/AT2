@@ -17,7 +17,6 @@ namespace regexpr {
 		void minimize();
 		void buildBasis(vector3d& matrix, std::set<char> metaSymbols);
 		std::string kPath(vector3d& matrix, SP_State iState, SP_State jState, int k);
-		std::string k_path(vector3d memoryMatrix, std::unordered_set<std::string>& meta, std::shared_ptr<State> i, std::shared_ptr<State> j, unsigned short k);
 		std::string regexRecover();
 		void print();
 		~DFA() {}
