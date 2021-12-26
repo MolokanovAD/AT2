@@ -12,11 +12,13 @@ using namespace regexpr;
 int main() {
 	SyntaxTree a;
 	try {
-		a.create("ab+d");
+		a.create("ab+");
 		a.print();
 		DFA automat(a.firstPositions(),a.buildFPTable(),a.getExpression(),a.getAlphabet());
-		automat.minimize();
+		//automat.minimize();
+		std::cout << std::endl;
 		automat.print();
+		std::cout << automat.regexRecover();
 	}
 	catch (std::exception& a) {
 		std::cout << a.what();
