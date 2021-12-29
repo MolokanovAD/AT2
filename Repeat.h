@@ -11,6 +11,7 @@ namespace regexpr {
 
         void buildFollowPos(std::vector<std::pair<int, std::unordered_set<int>>>& followPos) override;
         bool isNullable() override { return child->isNullable() || from == 0; }
+        std::pair<int, int> getLimits() { return std::pair<int, int>(from, to); }
 
         virtual void print() override { std::cout << "rep{" << from << "," << to << "}"; }
     };

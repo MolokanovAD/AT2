@@ -183,7 +183,7 @@ namespace regexpr {
 						(*pred)->setParent(repeatNode);
 						repeatNode->buildPositions();
 						nodeList.erase(pred);
-					}
+					}	
 				}
 
 			}

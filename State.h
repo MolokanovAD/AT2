@@ -4,10 +4,10 @@
 namespace regexpr {
 	class State {
 	private:
+		int num;
 		bool recieving;
 		bool processed;
 		std::unordered_set<int> positions;
-		int num;
 		std::vector<std::pair<char,std::shared_ptr<State>>> transitions;
 	public:
 		State(): processed(true),recieving(false) {}

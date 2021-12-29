@@ -6,7 +6,8 @@ namespace regexpr {
 		SyntaxTree secondTree(second);
 		DFA firstDFA(firstTree.firstPositions(), firstTree.buildFPTable(), firstTree.getExpression(), firstTree.getAlphabet());
 		DFA secondDFA(secondTree.firstPositions(), secondTree.buildFPTable(), secondTree.getExpression(), secondTree.getAlphabet());
-		return product(firstDFA.minimize(), secondDFA.minimize(), MODE::INTERSECTION).minimize().recoverExpression();//minimization
+		//return product(firstDFA.minimize(), secondDFA.minimize(), MODE::INTERSECTION).minimize().recoverExpression();//minimization
+		return product(firstDFA, secondDFA, MODE::INTERSECTION).recoverExpression();
 	}
 	DFA intersection(const DFA& first, const DFA& second) {
 		return product(first, second, MODE::INTERSECTION).minimize();//minimization

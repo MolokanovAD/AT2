@@ -16,7 +16,7 @@ namespace regexpr {
 					if (pos == expr.length())
 						continue;
 					if (*(expr.begin() + pos) == c) {
-						//found position which refers to requires symbol from the alphabet
+						//found position which refers to required symbol from the alphabet
 						for (auto fpLine : followPos) {
 							if (fpLine.first == pos) {
 								newStatePositions.insert(fpLine.second.begin(), fpLine.second.end());
@@ -42,7 +42,7 @@ namespace regexpr {
 			S->process();
 			S = firstNotProcessed();
 		}
-		std::sort(states.begin(), states.end(), [](SP_State a, SP_State b) {return a->getNumber() < b->getNumber(); });
+		//std::sort(states.begin(), states.end(), [](SP_State a, SP_State b) {return a->getNumber() < b->getNumber(); });
 	}
 
 	DFA DFA::minimize() {

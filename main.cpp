@@ -13,18 +13,26 @@ using namespace regexpr;
 int main() {
 	SyntaxTree a,b;
 	try {
-		std::string str1("ab");
-		std::string str2("abc{0}");
+		std::string str1("a{0}b{0}c");
+		std::string str2("ab");
 		a.create(str1);
 		b.create(str2);
 		DFA automat1(a.firstPositions(),a.buildFPTable(),a.getExpression(),a.getAlphabet());
 		DFA automat2(b.firstPositions(), b.buildFPTable(), b.getExpression(), b.getAlphabet());
-		automat1.minimize();
-		automat2.minimize();
-		DFA pr = product(automat1, automat2, MODE::INTERSECTION);
+		std::cout << automat1.recoverExpression();
+		//std::cout << automat1.match("");
+		//automat1.print();
+		//std::cout << std::endl;
+		//automat1.minimize();
+		//automat1.print();
+		//automat2.print();
+		//automat2.minimize();
+		//automat2.print();
+		//std::cout << intersection(str1, str2);
+		//DFA pr = product(automat1, automat2, MODE::INTERSECTION);
 		//pr.print();
-		std::cout << intersection(str1, str2) << std::endl;
-		std::cout << intersection(automat1, automat2).recoverExpression();
+		//std::cout << intersection(str1, str2) << std::endl;
+		//std::cout << intersection(automat1, automat2).recoverExpression();
 		//pr.minimize().print();
 	}
 	catch (std::exception& a) {
