@@ -17,3 +17,6 @@ bool regexpr::State::isError() const {
 	}
 	return !recieving;
 }
+void regexpr::State::addTransitions(const std::vector<std::pair<char, std::shared_ptr<State>>> t) {
+	transitions.insert(transitions.end(), t.begin(), t.end());
+}

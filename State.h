@@ -23,6 +23,7 @@ namespace regexpr {
 		void setNumber(int n) { num = n; }
 		void setRecieving(bool r) { recieving = r; }
 		void addTransition(char a, std::shared_ptr<State> s);
+		void addTransitions(const std::vector<std::pair<char, std::shared_ptr<State>>> t);
 		std::shared_ptr<State> transmit(char a);
 	};
 	typedef std::shared_ptr<State> SP_State;

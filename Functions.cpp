@@ -17,4 +17,33 @@ namespace regexpr {
 			}
 		}
 	}
+	std::string wrapWithBrackets(const std::string& source) {
+		if (source.back() != ')' && source.length() > 1)
+			return "(" + source + ")";
+		return source;
+	}
+	std::string KleeneClosure(const std::string& source) {
+		if (source.length() > 3) {
+			std::string KleeneCheck(source.end() - 4, source.end() - 1);
+			if (KleeneCheck == "){0}" && source.front() == '(')// (...){0} case
+				return source;
+			KleeneCheck.erase(KleeneCheck.begin());
+			if (KleeneCheck == "{0}" && source.length() == 4)// _{0} case
+				return source;
+		}
+		return wrapWithBrackets(source) + "{0}";
+	}
+	std::string addCondition(const std::string& source, const std::string& condition) {
+		std::string result = source;
+		if (!result.empty()) {
+			if (result.back() == ')')
+				result.erase(result.length() - 1);
+			else
+				result.insert(result.begin(), '(');
+			result += "|" + condition + ")";
+		}
+		else
+			result += condition;
+		return result;
+	}
 }

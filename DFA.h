@@ -13,11 +13,10 @@ namespace regexpr {
 	private:
 		std::string expr;
 		std::unordered_set<char> alphabet;
-		std::shared_ptr<State> startState;
 		std::vector<std::shared_ptr<State>> states;
 		std::shared_ptr<State> firstNotProcessed();
 	public:
-		DFA(std::vector<std::shared_ptr<State>> s, std::unordered_set<char> a) : alphabet(a), expr("") { states = s; startState = states.front(); }
+		DFA(std::vector<std::shared_ptr<State>> s, std::unordered_set<char> a) : alphabet(a), expr("") { states = s; }
 		DFA(const std::unordered_set<int>& first, std::vector<std::pair<int, std::unordered_set<int>>> followPos, const std::string& s, std::unordered_set<char> a);
 		DFA minimize();
 		bool match(const std::string& str);
