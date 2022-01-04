@@ -6,8 +6,8 @@ namespace regexpr {
 		SyntaxTree secondTree(second);
 		DFA firstDFA(firstTree.firstPositions(), firstTree.buildFPTable(), firstTree.getExpression(), firstTree.getAlphabet());
 		DFA secondDFA(secondTree.firstPositions(), secondTree.buildFPTable(), secondTree.getExpression(), secondTree.getAlphabet());
-		//return product(firstDFA.minimize(), secondDFA.minimize(), MODE::INTERSECTION).minimize().recoverExpression();//minimization
-		return product(firstDFA, secondDFA, MODE::INTERSECTION).recoverExpression();
+		return product(firstDFA.minimize(), secondDFA.minimize(), MODE::INTERSECTION).minimize().recoverExpression();//minimization
+		//return product(firstDFA, secondDFA, MODE::INTERSECTION).recoverExpression();
 	}
 	DFA intersection(const DFA& first, const DFA& second) {
 		return product(first, second, MODE::INTERSECTION).minimize();//minimization
@@ -36,7 +36,7 @@ namespace regexpr {
 		reg += "){0}";
 		SyntaxTree fullTree(reg);
 		DFA fullDFA(fullTree.firstPositions(), fullTree.buildFPTable(), fullTree.getExpression(), fullTree.getAlphabet());
-		return product(fullDFA.minimize(), dfa, MODE::DIFFERENCE);
+		return product(fullDFA.minimize(), dfa, MODE::DIFFERENCE).minimize();
 	}
 	std::string recoverRegularExpression(const DFA& obj) {//no minimization
 		return obj.recoverExpression();

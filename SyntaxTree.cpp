@@ -30,6 +30,7 @@ namespace regexpr {
 		allBrackets.clear();
 		nodeList.clear();
 		groups.clear();
+		std::unordered_set<char> metaSymbols = { '#', '+','^','.','|','{','}' };
 		for (auto i = expr.begin(); i < expr.end(); i++) {
 			switch (*i) {
 				case '#': {
@@ -155,7 +156,7 @@ namespace regexpr {
 			}
 			if(scanFrom != closeBracket) 
 				scanFrom++;
-			for (auto& i = scanFrom; i != closeBracket; i++) {//positive closure and repeat check
+			for (auto& i = scanFrom; i != closeBracket; i++) {//positive KleeneClosure and repeat check
 				SP_Pos positiveNode = std::dynamic_pointer_cast<Positive>(*i);
 				auto pred = i;
 				pred--;

@@ -2,9 +2,7 @@
 #include "Functions.h"
 namespace regexpr {
 	DFA::DFA(const std::unordered_set<int>& first, std::vector<std::pair<int, std::unordered_set<int>>> followPos, const std::string& s, std::unordered_set<char> a) :expr(s), alphabet(a) {
-		//states.push_back(std::make_shared<State>(first, std::find(first.begin(), first.end(), expr.length()) != first.end(),1));
 		states.push_back(std::make_shared<State>(first, std::find(first.begin(), first.end(), expr.length()) != first.end(), 0));
-		//int n = 2;
 		int n = 1;
 		SP_State S = *(states.begin());
 		while (S.get()) {
@@ -41,7 +39,6 @@ namespace regexpr {
 			S->process();
 			S = firstNotProcessed();
 		}
-		//std::sort(states.begin(), states.end(), [](SP_State a, SP_State b) {return a->getNumber() < b->getNumber(); });
 	}
 
 	DFA DFA::minimize() {
@@ -114,7 +111,7 @@ namespace regexpr {
 		auto state = states.front();
 		for (char s : str) {
 			if (alphabet.find(s) == alphabet.end())
-				throw std::exception("Syntax error");
+				return false;
 			state = state->transmit(s);
 		}
 		return state->isRecieving();
@@ -128,14 +125,12 @@ namespace regexpr {
 		return i == states.end() ? SP_State(nullptr) : *i;
 	}
 	std::string DFA::recoverExpression() const{
-		//vector3d matrix(states.size(), std::vector<std::vector<std::shared_ptr<std::string>>>(states.size(), std::vector<std::shared_ptr<std::string>>(states.size(), nullptr)));
 		vector3d matrix(states.size(), std::vector<std::vector<std::shared_ptr<std::string>>>(states.size(), std::vector<std::shared_ptr<std::string>>(states.size() + 1, nullptr)));
 		std::set<char> metaSymbols = { ')','(', '#', '+','^','.','|','{','}' };
 		std::string result = "", newPath = "";
 		buildBasis(matrix, metaSymbols);
 		for (auto state : states) {
 			if (state->isRecieving()) {
-				//newPath = kPath(matrix, states.front(), state, states.size() - 1);
 				newPath = kPath(matrix, states.front(), state, states.size());
 				if (!result.empty() && !newPath.empty())
 					result += "|";
@@ -156,62 +151,19 @@ namespace regexpr {
 				sign += transition.first;
 				if (metaSymbols.find(transition.first) != metaSymbols.end())
 					sign.insert(sign.begin(), '#');
-				if (!matrix[i][j][0].get()) {
+				if (!matrix[i][j][0].get())
 					matrix[i][j][0] = std::make_shared<std::string>(sign);
-				}
-				else {
+				else
 					matrix[i][j][0] = std::make_shared<std::string>(addCondition((*matrix[i][j][0]), sign));
-					//if ((*matrix[i][j][0])[0] != '(') //if there is no open bracket, then we add it
-					//	matrix[i][j][0]->insert(matrix[i][j][0]->begin(), '(');
-					//else //if there is a bracket, then there is a bracket at the end, so we delete it to add a new transition as OR 
-					//	matrix[i][j][0]->erase(matrix[i][j][0]->length() - 1);
-					//matrix[i][j][0]->append("|" + sign + ")");
-				}
 			}
 			if (!matrix[i][i][0].get())
 				matrix[i][i][0] = std::make_shared<std::string>("^");
-			else {
+			else
 				matrix[i][i][0] = std::make_shared<std::string>(addCondition((*matrix[i][i][0]), "^"));
-				//if ((*matrix[i][i][0])[0] != '(') //if there is no open breacket, then we add it
-				//	matrix[i][i][0]->insert(matrix[i][i][0]->begin(), '(');
-				//else //if there is a bracket, then there is a bracket at the end, so we delete it to add a new transition as OR 
-				//	matrix[i][i][0]->erase(matrix[i][i][0]->length() - 1);
-				//*matrix[i][i][0] += "|^)";
-				//*matrix[i][i][0] += "|^){0}";
-			}
 		}
 	}
 
 	std::string DFA::kPath(vector3d& matrix, SP_State iState, SP_State jState, int k) const{
-		/*int i = iState->getNumber();
-		int j = jState->getNumber();
-		if (k == 0)
-			return matrix[i][j][0].get() ? *matrix[i][j][0] : "";
-		if (matrix[i][j][k].get())
-			return *matrix[i][j][k];
-		std::string result = matrix[i][j][k - 1].get() ? *matrix[i][j][k - 1] : kPath(matrix, iState, jState, k - 1);
-		std::string firstPart = matrix[i][k][k - 1].get() ? *matrix[i][k][k - 1] : kPath(matrix, iState, states[k], k - 1);
-		std::string lastPart = matrix[k][j][k - 1].get() ? *matrix[k][j][k - 1] : kPath(matrix, states[k], jState, k - 1);
-		if (!firstPart.empty() && !lastPart.empty()) {
-			std::string repeat = matrix[k][k][k - 1].get() ? *matrix[k][k][k - 1] : kPath(matrix, states[k], states[k], k - 1);
-			if (!repeat.empty() && repeat != "^") {
-				if (repeat.front() == '(' && repeat.back() == ')')
-					firstPart += repeat + "{0}";
-				else
-					firstPart += "(" + repeat + "){0}";
-			}
-			if (!result.empty()) {
-				if (result.front() == '(' && repeat.back() == ')')
-					result.erase(result.length() - 1);
-				else
-					result.insert(result.begin(), '(');
-				result += "|" + firstPart + lastPart + ")";
-			}
-			else
-				result += firstPart + lastPart;
-		}
-		matrix[i][j][k] = std::make_shared<std::string>(result);
-		return result;*/
 		int i = iState->getNumber();
 		int j = jState->getNumber();
 		if (k == 0)
@@ -225,7 +177,7 @@ namespace regexpr {
 			std::string repeat = matrix[k - 1][k - 1][k - 1].get() ? *matrix[k - 1][k - 1][k - 1] : kPath(matrix, states[k - 1], states[k - 1], k - 1);
 			if (!repeat.empty() && repeat != "^") {
 				if (repeat == firstPart)
-					firstPart = KleeneClosure(firstPart);
+					firstPart = wrapWithBrackets(firstPart) + "+";//KleeneClosure(firstPart);
 				else
 					firstPart += KleeneClosure(repeat);
 			}
