@@ -14,6 +14,7 @@ using namespace regexpr;
 int main() {
 	SyntaxTree a,b;
 	try {
+		std::string test("abc{0}e{3}");
 		//SyntaxTree d("a{1,44");
 		std::string str1("a{0}b{0}c");
 		std::string str2("abc");
@@ -21,14 +22,14 @@ int main() {
 		b.create(str2);
 		DFA automat1(a.firstPositions(),a.buildFPTable(),a.getExpression(),a.getAlphabet());
 		DFA automat2(b.firstPositions(), b.buildFPTable(), b.getExpression(), b.getAlphabet());
-		//automat1.print();
-		std::cout << automat1.recoverExpression() << std::endl;
+		automat1.print();
+		/*std::cout << automat1.recoverExpression() << std::endl;
 		std::string strres(automat1.recoverExpression());
 		SyntaxTree c(strres);
 		DFA automatres(c.firstPositions(), c.buildFPTable(), c.getExpression(), c.getAlphabet());
 		automatres.print();
 		automatres.minimize();
-		automatres.print();
+		automatres.print();*/
 		//std::cout << automat1.minimize().recoverExpression();
 		//std::cout << automat1.match("");
 		//automat1.print();

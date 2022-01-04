@@ -49,19 +49,78 @@ namespace regexpr {
 	std::string openRepeats(const std::string& source) {
 		std::string result(source);
 		It start = result.begin();
-		int counter = 0;
+		int counter = 1;
 		int repeat = result.find('{');
-		while (repeat != result.length()) {
-			
-
-			repeat = result.find('{');
-		}
-		/*for (It i = ++source.begin(); i < source.end(); i++) {
-			if (*i == '{' && *(i - 1) != '#') {
-				result.insert(result.end(), start, (i - 1));
+		std::unordered_set<char> metaSymbols = {  '#', '+','^','.','|','{','}' };
+		while (repeat != -1) {
+			int from, to = INT_MAX;
+			It i = result.begin() + repeat + 1;
+			try {
+				//parsing the string
+				from = parseInt(i, result.end());
+			}
+			catch (std::exception& e) {
+				throw e;
+			}
+			if (i < result.end() && *i == ',') {
+				//if ',' is met there is a second limit
+				//repeat same thing
+				i++;
+				try {
+					to = parseInt(i, result.end());
+				}
+				catch (std::exception& e) {
+					throw e;
+				}
+			}
+			if (i >= result.end() || *i != '}' || from > to)
+				throw std::exception("Syntax error");
+			if (from == 0 && to == INT_MAX) {
+				repeat = result.find('{', i - result.begin());
+				continue;
+			}
+			It repeatEnd = i + 1;
+			i = result.begin() + repeat - 1;
+			if (metaSymbols.find(*i) != metaSymbols.end()) {
+				if (*(i - 1) == '#')
+					i--;
+				else
+					throw std::exception("Syntax error");
 
 			}
-		}*/
+			if (*i == ')') {
+				while (i >= result.begin() && counter) {
+					i--;
+					if (*i == ')')
+						counter++;
+					if (*i == '(')
+						counter--;
+				}
+				if (i < result.begin())
+					throw std::exception("Syntax error");
+			}
+			result.erase(result.begin() + repeat, repeatEnd);
+			std::string rep;
+			rep.append(result, i - result.begin(), repeat - (i - result.begin()));
+			for (int k = from; (k-1) > 0; k--) {
+				result.insert(repeat, rep);
+			}
+			std::string notNeccesary("(^");
+			if (to == INT_MAX) {
+				result.insert(repeat + (from - 1) * rep.length(), "+");
+			}
+			else {
+				for (int k = 1; k <= (to - from); k++) {
+					notNeccesary += '|';
+					for (int j = 1; j <= k; j++) {
+						notNeccesary.append(rep);
+					}
+				}
+				notNeccesary += ')';
+				result.insert(repeat + (from - 1) * rep.length(), notNeccesary);
+			}
+			repeat = result.find('{',i-result.begin());
+		}
 		return result;
 	}
 	int parseInt(It& i, It end) {

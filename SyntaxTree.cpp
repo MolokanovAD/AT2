@@ -138,7 +138,7 @@ namespace regexpr {
 
 
 	void SyntaxTree::create(const std::string& s) {
-		expr = s;
+		expr = openRepeats(s);
 		NL_It openBracket, closeBracket, scanFrom;
 		createNodeList();
 		while(!allBrackets.empty()){
