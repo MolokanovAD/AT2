@@ -46,4 +46,37 @@ namespace regexpr {
 			result += condition;
 		return result;
 	}
+	std::string openRepeats(const std::string& source) {
+		std::string result(source);
+		It start = result.begin();
+		int counter = 0;
+		int repeat = result.find('{');
+		while (repeat != result.length()) {
+			
+
+			repeat = result.find('{');
+		}
+		/*for (It i = ++source.begin(); i < source.end(); i++) {
+			if (*i == '{' && *(i - 1) != '#') {
+				result.insert(result.end(), start, (i - 1));
+
+			}
+		}*/
+		return result;
+	}
+	int parseInt(It& i, It end) {
+		int result = 0;
+		std::string str;
+		while (i < end && std::isdigit(*i)) {
+			str += *i;
+			i++;
+		}
+		try {
+			result = std::stoi(str);
+		}
+		catch (std::exception& e) {
+			throw e;
+		}
+		return result;
+	}
 }

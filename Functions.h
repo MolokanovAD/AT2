@@ -5,4 +5,6 @@ namespace regexpr {
 	std::string wrapWithBrackets(const std::string& source);
 	std::string KleeneClosure(const std::string& source);
 	std::string addCondition(const std::string& source, const std::string& condition);
+	std::string openRepeats(const std::string& source);
+	int parseInt(It& i, It end);
 }

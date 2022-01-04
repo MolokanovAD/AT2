@@ -14,6 +14,7 @@ using namespace regexpr;
 int main() {
 	SyntaxTree a,b;
 	try {
+		//SyntaxTree d("a{1,44");
 		std::string str1("a{0}b{0}c");
 		std::string str2("abc");
 		a.create(str1);

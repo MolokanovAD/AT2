@@ -1,5 +1,6 @@
 #include "SyntaxTree.h"
 #include "LastNode.h"
+#include "Functions.h"
 
 namespace regexpr {
 	regexpr::SyntaxTree::SyntaxTree(const std::string& s) {
@@ -48,10 +49,10 @@ namespace regexpr {
 						auto symbol = i;
 						symbol++;
 						while (true) {
-							if (std::isdigit(*symbol)) {
+							if (symbol < expr.end() && std::isdigit(*symbol)) {
 								number += *symbol;
 							}
-							else if (*symbol == ':' && !number.empty()) {
+							else if (symbol < expr.end() && *symbol == ':' && !number.empty()) {
 								symbol++;
 								if (symbol < expr.end() && *symbol != ')') {
 									int num = std::stoi(number);
@@ -76,38 +77,27 @@ namespace regexpr {
 						break;
 					}
 				case '{': {
-						std::string fr("");
 						int from, to = INT_MAX;
 						i++;
-						while (std::isdigit(*i)) {
-							//forming string of digits which is the lower limit
-							fr += *i;
-							i++;
-						}
 						try {
 							//parsing the string
-							from = std::stoi(fr);
+							from = parseInt(i,expr.end());
 						}
 						catch (std::exception& e) {
 							throw e;
 						}
-						if (*i == ',') {
+						if (i < expr.end() && *i == ',') {
 							//if ',' is met there is a second limit
 							//repeat same thing
 							i++;
-							fr.clear();
-							while (std::isdigit(*i)) {
-								fr += *i;
-								i++;
-							}
 							try {
-								to = std::stoi(fr);
+								to = parseInt(i, expr.end());
 							}
 							catch (std::exception& e) {
 								throw e;
 							}
 						}
-						if (*i == '}' && from <= to) {
+						if (i < expr.end() && *i == '}' && from <= to) {
 							nodeList.emplace_back(std::make_shared<Repeat>(from, to));
 							break;
 						}
@@ -163,8 +153,9 @@ namespace regexpr {
 				isGroup = true;
 				openBracket = scanFrom;
 			}
-			if(scanFrom != closeBracket) scanFrom++;
-			for (auto i = scanFrom; i != closeBracket; i++) {//positive closure and repeat check
+			if(scanFrom != closeBracket) 
+				scanFrom++;
+			for (auto& i = scanFrom; i != closeBracket; i++) {//positive closure and repeat check
 				SP_Pos positiveNode = std::dynamic_pointer_cast<Positive>(*i);
 				auto pred = i;
 				pred--;
