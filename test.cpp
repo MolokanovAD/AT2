@@ -19,6 +19,17 @@
 #include "../ProjectAT2WithTest/UnaryOperator.h"
 #include "../ProjectAT2WithTest/ZeroOperator.h"
 using namespace regexpr;
+
+TEST(StringCheck, WrongStringTest) {
+	SyntaxTree a;
+	ASSERT_THROW(a.create("abc++f"), std::exception);
+	ASSERT_THROW(a.create("abc{3,5}+a"), std::exception);
+	ASSERT_THROW(a.create("{0}af"), std::exception);
+	ASSERT_THROW(a.create("(abc))"), std::exception);
+	ASSERT_THROW(a.create("(a(b)"), std::exception);
+	ASSERT_THROW(a.create("a{3,4"), std::exception);
+	ASSERT_THROW(a.create("aeg|.wd"), std::exception);
+}
 TEST(OperatorCheck, RepeatTest) {
 	ASSERT_TRUE(match("abc{3,5}eg", "abccceg"));
 	ASSERT_TRUE(match("abc{3,5}eg", "abcccceg"));
