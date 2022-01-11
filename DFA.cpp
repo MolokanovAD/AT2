@@ -198,33 +198,33 @@ namespace regexpr {
 		SP_State errorState;
 		for (auto& i : first.states) {
 			for (auto& j : second.states) {
-				int index = i->getNumber() * sSize + j->getNumber();
+				int index = i->getNumber() * sSize + j->getNumber();//индекс вершины в массиве, которая отвечает за комбинацию (i,j) вершин исходных автоматов
 				if (mode == DIFFERENCE && i->isRecieving() && !j->isRecieving())
 					states[index]->setRecieving(true);
 				else if(mode == INTERSECTION && i->isRecieving() && j->isRecieving())
 					states[index]->setRecieving(true);
 				for (auto& iTrans : i->getTransitions()) {
 					for (auto& jTrans : j->getTransitions())
-						if(iTrans.first == jTrans.first)
-							states[index]->addTransition(iTrans.first, states[iTrans.second->getNumber() * sSize + jTrans.second->getNumber()]);
+						if(iTrans.first == jTrans.first)//если найден переход в первом и втором автомате по одному и тому же символу
+							states[index]->addTransition(iTrans.first, states[iTrans.second->getNumber() * sSize + jTrans.second->getNumber()]);//создаем в вершине (i,j) переход в вершину, отвечающую за те, в которые ведут переходы по символу
 				}
-				if (states[index]->isError())
+				if (states[index]->isError())//если состояние является ошибочным, запоминаем его в переменной errorState
 					errorState = states[index];
 			}
 		}
-		if (first.alphabet != second.alphabet) {
-			if (!errorState.get()) {//if there is no error state at the moment, it's being created
+		if (first.alphabet != second.alphabet) {//если алфавиты не совпадают, то переходов еще недостаточно, тк вверху делались переходы только по тем символам, которые есть в обоих алфавитах (208 строчка)
+			if (!errorState.get()) {//если в прошлом цикле в errorState так ничего и не записали, значит состояния ошибки в автомате еще нет, надо создать
 				errorState = std::make_shared<State>(states.size());
-				for (auto& t : states[0]->getTransitions())//adding transitions for intersection of alphabets
+				for (auto& t : states[0]->getTransitions())//добавляем переходы из состояния ошибки в само себя только по тем символам, которые есть в обоих алфавитах, тк с остальными будем разбираться дальше
 					errorState->addTransition(t.first, errorState);
-				states.push_back(errorState);
+				states.push_back(errorState);//добавляем errorState в массив состояний
 			}
-			std::vector<std::pair<char, SP_State>> t;
-			for (char c : alphabet) {//forming vector of transitions to errorState
-				if (first.alphabet.find(c) == first.alphabet.end() || second.alphabet.find(c) == second.alphabet.end())
-					t.push_back(std::pair<char, SP_State>(c, errorState));
+			std::vector<std::pair<char, SP_State>> t;//создаем массив переходов по символам, которых нет в одном из алфавитов, он будет общим для всех вершин, потому что все переходы в нем идут в errorState
+			for (char c : alphabet) {//идем по всем символам результирующего алфавита(объединение исходных)
+				if (first.alphabet.find(c) == first.alphabet.end() || second.alphabet.find(c) == second.alphabet.end())//если символ из рез. алфавита отсутствует хотя бы в одном из исходных алфавитов, переход из любой вершины автомата по этому символу будет вести в состояние ошибки
+					t.push_back(std::pair<char, SP_State>(c, errorState));//добавляем переход в errorState по этому символу
 			}
-			for (auto& state : states) {
+			for (auto& state : states) {//теперь в каждую вершину добавляем полученные переходы в состояние ошибки
 				state->addTransitions(t);
 			}
 		}
