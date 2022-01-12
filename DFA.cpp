@@ -164,26 +164,27 @@ namespace regexpr {
 	}
 
 	std::string DFA::kPath(vector3d& matrix, SP_State iState, SP_State jState, int k) const{
-		int i = iState->getNumber();
-		int j = jState->getNumber();
-		if (k == 0)
-			return matrix[i][j][0].get() ? *matrix[i][j][0] : "";
-		if (matrix[i][j][k].get())
+		int i = iState->getNumber();//k, которое в параметрах функции, это на самом деле k+1 (если смотреть как в лекции), потому что у нас 0-пути - это те, которые проходят через вершину 0, а в лекции 0-пути это базис, у меня базис лежит в 0 строке, 0-пути в первой, 1-пути во 2 и тд
+		int j = jState->getNumber();//если не понятно лучше забей на 1 коммент, все равно сама будешь делать по-своему
+		if (k == 0)//если k = 0, то надо вернуть что-то из базиса
+			return matrix[i][j][0].get() ? *matrix[i][j][0] : "";//если такой путь есть, то возвращаем, если нет - то возвращаем ничего (это не пустая строка)
+		if (matrix[i][j][k].get())//если этот путь уже был найден ранее, то сразу возвращаем его
 			return *matrix[i][j][k];
+		//result это Rij (k-1) из выражения, которое в лекции было, firstPart - Rik (k-1), repeat - Rkk (k-1), lastPart - Rkj (k-1)
 		std::string result = matrix[i][j][k - 1].get() ? *matrix[i][j][k - 1] : kPath(matrix, iState, jState, k - 1);
-		std::string firstPart = matrix[i][k - 1][k - 1].get() ? *matrix[i][k - 1][k - 1] : kPath(matrix, iState, states[k - 1], k - 1);
-		std::string lastPart = matrix[k - 1][j][k - 1].get() ? *matrix[k - 1][j][k - 1] : kPath(matrix, states[k - 1], jState, k - 1);
+		std::string firstPart = matrix[i][k - 1][k - 1].get() ? *matrix[i][k - 1][k - 1] : kPath(matrix, iState, states[k - 1], k - 1);//здесь путь в вершину k-1, а не k из-за того что k, которое идет в функцию это на самом деле k+1 matrix[i][k - 1][k - 1]
+		std::string lastPart = matrix[k - 1][j][k - 1].get() ? *matrix[k - 1][j][k - 1] : kPath(matrix, states[k - 1], jState, k - 1);//и тут тоже
 		if (!firstPart.empty() && !lastPart.empty()) {
 			std::string repeat = matrix[k - 1][k - 1][k - 1].get() ? *matrix[k - 1][k - 1][k - 1] : kPath(matrix, states[k - 1], states[k - 1], k - 1);
-			if (!repeat.empty() && repeat != "^") {
+			if (!repeat.empty() && repeat != "^") {//если repeat нету или это пустая строка, то его не надо добавлять в путь
 				if (repeat == firstPart)
-					firstPart = wrapWithBrackets(firstPart) + "+";//KleeneClosure(firstPart);
+					firstPart = wrapWithBrackets(firstPart) + "+";//если repeat и firstPart одинаковые, то получается полож замыкание firstPart вместо firstPart(repeat)*
 				else
-					firstPart += KleeneClosure(repeat);
+					firstPart += KleeneClosure(repeat);//делаю Rikk-1(Rkkk-1)*
 			}
-			result = addCondition(result, firstPart + lastPart);
+			result = addCondition(result, firstPart + lastPart);//все собираю в результат
 		}
-		matrix[i][j][k] = std::make_shared<std::string>(result);
+		matrix[i][j][k] = std::make_shared<std::string>(result);//сохраняю в матрице
 		return result;
 	}
 
